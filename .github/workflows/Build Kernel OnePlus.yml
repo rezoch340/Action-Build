@@ -733,7 +733,33 @@ jobs:
           grep -nE '^(REPO_OWNER|REPO_NAME|REPO_BRANCH|KSU_VERSION_API|KSU_VERSION_FULL|VERSION_TAG|GIT_BIN|CURL_BIN)' kernel/Makefile
           echo "::endgroup::"
 
-          bash "$GITHUB_WORKSPACE/scripts/ensure_post_execveat_sucompat.sh" "$PWD"
+          # Checkout is wiped by maximize-build-space; keep this inline.
+          SUCOMPAT_C="kernel/feature/sucompat.c"
+          if [[ ! -f "$SUCOMPAT_C" ]]; then
+            echo "找不到 $SUCOMPAT_C"
+            exit 1
+          fi
+          if grep -q 'ksu_handle_post_execveat_sucompat' "$SUCOMPAT_C"; then
+            echo "ksu_handle_post_execveat_sucompat 已存在，跳过"
+          else
+            cat >> "$SUCOMPAT_C" << 'EOF'
+
+#ifdef CONFIG_KSU_SUSFS
+int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr,
+		void *argv, void *envp, int *flags, int *retval)
+{
+	(void)fd;
+	(void)filename_ptr;
+	(void)argv;
+	(void)envp;
+	(void)flags;
+	(void)retval;
+	return 0;
+}
+#endif
+EOF
+            echo "已补上 ksu_handle_post_execveat_sucompat"
+          fi
 
       - name: Apply Fake Patches
         if: ${{ github.event.inputs.SUSFS_META != '-1' }}
