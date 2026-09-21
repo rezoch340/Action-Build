@@ -744,20 +744,20 @@ jobs:
           else
             cat >> "$SUCOMPAT_C" << 'EOF'
 
-#ifdef CONFIG_KSU_SUSFS
-int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr,
-		void *argv, void *envp, int *flags, int *retval)
-{
-	(void)fd;
-	(void)filename_ptr;
-	(void)argv;
-	(void)envp;
-	(void)flags;
-	(void)retval;
-	return 0;
-}
-#endif
-EOF
+          #ifdef CONFIG_KSU_SUSFS
+          int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr,
+          void *argv, void *envp, int *flags, int *retval)
+          {
+          (void)fd;
+          (void)filename_ptr;
+          (void)argv;
+          (void)envp;
+          (void)flags;
+          (void)retval;
+          return 0;
+          }
+          #endif
+          EOF
             echo "已补上 ksu_handle_post_execveat_sucompat"
           fi
 
